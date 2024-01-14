@@ -9,14 +9,14 @@ import { useData } from "./common/dataContext";
 const Table = (prop) => {
     const [pageCount, setPageCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(0);
-    const [pokemonCounter, setPokemonCounter] = useState(0);
     const [pokemonDetails, setPokemonDetails] = useState([]);
+    const [currentPokemonsByTags, setCurrentPokemonsByTags] = useState([]);
+    const [currentTags, setCurrentTags] = useState([]);
   
     const itemsOnPage = useData();
 
     const fetchDataWithoutTags = async () => {
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${itemsOnPage.itemsValue}&offset=${currentPage * itemsOnPage.itemsValue}`);
-
       const data = await response.json();
 
       const pokemonData = data.results.map(async (pokemon) => {
@@ -25,46 +25,65 @@ const Table = (prop) => {
         return detailedData;
       })
       let pokemonDetailsData = await Promise.all(pokemonData);
+      console.log(itemsOnPage.itemsValue);
 
       setPokemonDetails(pokemonDetailsData);
       setPageCount(Math.ceil(data.count / itemsOnPage.itemsValue));
     };
 
     const fetchDataWithTags = async () => {
-      let fetchedPokemons = 0;
-      console.log(itemsOnPage.itemsValue);
-      while (fetchedPokemons < 10) {
-        for (let tag of itemsOnPage.pokeTags) {
-          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonCounter+1}`);
-
-          const data = await response.json();
-          console.log(data);
-
-          // const pokemonData = data.results.map(async (pokemon) => {
-          //   let detailedResponse = await fetch(pokemon.url);
-          //   let detailedData = await detailedResponse.json();
-          //   return detailedData;
-          // })
-          // let pokemonDetailsData = await Promise.all(pokemonData);
+      let allPokemonDetailsData = [];
     
-          // setPokemonDetails(pokemonDetailsData);
-          // setPageCount(Math.ceil(data.count / itemsOnPage.itemsValue));
-          fetchedPokemons += 1;
-        }
+      for (const tags of itemsOnPage.pokeTags) {
+        const response = await fetch(`https://pokeapi.co/api/v2/type/${tags}`);
+        const data = await response.json();
+    
+        const pokemonData = data.pokemon.map(async (pokemon) => {
+          let detailedResponse = await fetch(pokemon.pokemon.url);
+          let detailedData = await detailedResponse.json();
+          
+          return detailedData;
+        });
+    
+        let pokemonDetailsData = await Promise.all(pokemonData);
+        allPokemonDetailsData = allPokemonDetailsData.concat(pokemonDetailsData);
       }
+    
+      const uniquePokemonDetailsData = Array.from(new Set(allPokemonDetailsData.map(JSON.stringify)))
+        .map(JSON.parse);
+
+      setCurrentPokemonsByTags(uniquePokemonDetailsData);
+      if (typeof itemsOnPage.itemsValue !== 'number') {
+        setPokemonDetails(currentPokemonsByTags.slice(currentPage * 10, (currentPage + 1) * 10));
+      } else {
+        setPokemonDetails(currentPokemonsByTags.slice(currentPage * itemsOnPage.itemsValue, (currentPage + 1) * itemsOnPage.itemsValue));
+      }
+      setPageCount(Math.ceil(uniquePokemonDetailsData.length / itemsOnPage.itemsValue));
+      setCurrentTags(itemsOnPage.pokeTags);
+    };
+
+    const fetchDataByName = async () => {
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${itemsOnPage.searchContent}`);
+
+      const data = await response.json();
+      setPokemonDetails([data]);
+      setPageCount(Math.ceil(data.count / itemsOnPage.itemsValue));
     }
 
     useEffect(() => {
-        try {
-          if (itemsOnPage.pokeTags.length > 0) {
-            fetchDataWithTags();
-          } else {
-            fetchDataWithoutTags();
-          }
-        } catch (error) {
-          console.error(`ERROR: ${error}`);
+      try {
+        if (itemsOnPage.pokeTags.length > 0) {
+          fetchDataWithTags();
+        } else if (itemsOnPage.pokeTags.length === 0 && itemsOnPage.searchContent == undefined || itemsOnPage.searchContent == '') {
+          fetchDataWithoutTags();
+        } else {
+          fetchDataByName();
         }
-      }, [currentPage, itemsOnPage.itemsValue, itemsOnPage.pokeTags]);
+        console.log(itemsOnPage.searchContent);
+      } catch (error) {
+        console.error(`ERROR: ${error}`);
+      }
+    }, [currentPage, itemsOnPage.itemsValue, itemsOnPage.pokeTags, currentTags, itemsOnPage.searchContent]);
     
       const changePage = ({ selected }) => {
         setCurrentPage(selected);

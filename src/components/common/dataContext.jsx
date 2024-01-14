@@ -12,12 +12,24 @@ export const DataProvider = ({ children }) => {
   const [pokeTags, setPokeTags] = useState([]);
 
   const updatePokeTags = (newValue) => {
-    setPokeTags(newValue);
-    setItemsValue((prevItems) => ({ ...prevItems }));
+    const updatedPokeTags = pokeTags.includes(newValue[newValue.length - 1])
+      ? pokeTags.filter((_, index) => index !== pokeTags.indexOf(newValue[newValue.length - 1]))
+      : [...pokeTags, newValue[newValue.length - 1]];
+  
+    setPokeTags(updatedPokeTags);
+    setItemsValue((currentItems) => {
+      return currentItems;
+    });
+  };
+
+  const [searchContent, setSearchContent] = useState();
+
+  const updateSearchContent = (newValue) => {
+    setSearchContent(newValue);
   }
 
   return (
-    <DataContext.Provider value={{ itemsValue, pokeTags, updatePokeTags,  updateItemsValue }}>
+    <DataContext.Provider value={{ itemsValue, pokeTags, searchContent, updateSearchContent, updatePokeTags,  updateItemsValue }}>
       {children}
     </DataContext.Provider>
   );

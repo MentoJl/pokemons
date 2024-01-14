@@ -1,19 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from './assets/pokeTitle.module.css';
 import { Paragraph } from 'dracula-ui';
 import 'dracula-ui/styles/dracula-ui.css';
 import Scroller from './scroller';
 import { useData } from "./common/dataContext";
-import { xor } from "lodash";
 
 const Table = (prop) => {
 
     const title = useRef();
     const itemsOnPage = useData();
     const [activeTags, changeActiveTag] = useState([]);
+    const searchContent = useRef();
 
     const scrollTitle = (scroll) => {
-        title.current.style.marginTop = scroll ? '0px' : '-170px';
+        title.current.style.marginTop = scroll ? '0px' : '-190px';
     }
 
     const changeItemsOnPage = (newValue) => {
@@ -24,8 +24,18 @@ const Table = (prop) => {
         itemsOnPage.updatePokeTags(newValue);
     }
 
+    const searchButtonClick = () => {
+        itemsOnPage.updateSearchContent(searchContent.current.value.toLowerCase());
+    }
+
     const setActiveTag = (event) => {
-        event.target.classList.toggle('pokeTitle_pokeActiveTags__X6c3d');
+        if (event.target.style.backgroundColor != 'rgb(242, 121, 170)') {
+            event.target.style.backgroundColor = 'rgb(242, 121, 170)';
+            event.target.style.color = 'rgb(40, 42, 54)';
+        } else {
+            event.target.style.backgroundColor = 'rgb(40, 42, 54)';
+            event.target.style.color = 'rgb(255, 128, 191)';
+        }
         let index = activeTags.indexOf(event.target.textContent);
         if (index !== -1) {
             activeTags.splice(index, 1);
@@ -39,10 +49,10 @@ const Table = (prop) => {
         <div className={styles.pokeArea}>
             <div className={styles.pokePlaceTitle} ref={title} >
                 <div className={styles.searchArea}>
-                <Paragraph color="purple">Search:</Paragraph> <input className={styles.searcher}></input>
+                <input onChange={searchButtonClick} ref={searchContent} className={styles.searcher}></input> <Paragraph onClick={searchButtonClick} className={styles.searchButton} color="green">Search</Paragraph>
                 </div>
                 <div className={styles.pokePlaceTags}>
-                <Paragraph color="purple">Tags:</Paragraph>
+                <Paragraph color="purple" className={styles.tags}>Tags:</Paragraph>
                     <Paragraph onClick={setActiveTag} className={styles.pokeTags} color="pink">Normal</Paragraph>
                     <Paragraph onClick={setActiveTag} className={styles.pokeTags} color="pink">Fire</Paragraph>
                     <Paragraph onClick={setActiveTag} className={styles.pokeTags} color="pink">Water</Paragraph>
