@@ -1,4 +1,4 @@
-#The site are deployment on https://mentojl.github.io/pokemons/
+*The site are deployment on https://mentojl.github.io/pokemons/*
 
 # Getting Started with Create React App
 
