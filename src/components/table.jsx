@@ -25,7 +25,6 @@ const Table = (prop) => {
         return detailedData;
       })
       let pokemonDetailsData = await Promise.all(pokemonData);
-      console.log(itemsOnPage.itemsValue);
 
       setPokemonDetails(pokemonDetailsData);
       setPageCount(Math.ceil(data.count / itemsOnPage.itemsValue));
