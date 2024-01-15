@@ -79,7 +79,6 @@ const Table = (prop) => {
         } else {
           fetchDataByName();
         }
-        console.log(itemsOnPage.searchContent);
       } catch (error) {
         console.error(`ERROR: ${error}`);
       }
